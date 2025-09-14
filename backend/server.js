@@ -1,3 +1,14 @@
+// Utility to recursively convert BigInt to Number
+function convertBigIntToNumber(obj) {
+    if (typeof obj === 'bigint') return Number(obj);
+    if (Array.isArray(obj)) return obj.map(convertBigIntToNumber);
+    if (obj && typeof obj === 'object') {
+        return Object.fromEntries(
+            Object.entries(obj).map(([k, v]) => [k, convertBigIntToNumber(v)])
+        );
+    }
+    return obj;
+}
 // --- Shopify Ingestion Server ---
 require('@shopify/shopify-api/adapters/node');
 require('dotenv').config();
@@ -5,7 +16,9 @@ const express = require('express');
 const { shopifyApi, LATEST_API_VERSION } = require('@shopify/shopify-api');
 const { PrismaClient } = require('@prisma/client');
 
+const cors = require('cors');
 const app = express();
+app.use(cors({ origin: 'http://localhost:3000' }));
 const prisma = new PrismaClient();
 
 // --- Your main data ingestion endpoint ---
@@ -121,4 +134,48 @@ app.get('/api/ingest', async (req, res) => {
 const PORT = process.env.PORT || 3001;
 app.listen(PORT, () => {
     console.log(`Server running on port ${PORT}`);
+});
+
+app.get('/api/dashboard-metrics', async (req, res) => {
+    // For now, we are hardcoding the store ID. We will make this dynamic later.
+    const storeId = 1; 
+
+    try {
+        // Get total counts
+
+        const totalCustomers = await prisma.customer.count({ where: { tenantId: storeId } });
+        const totalOrders = await prisma.order.count({ where: { tenantId: storeId } });
+
+        // Calculate total revenue
+        const revenueAggregation = await prisma.order.aggregate({
+            _sum: { totalPrice: true },
+            where: { tenantId: storeId },
+        });
+        // Convert BigInt to Number (or 0)
+        const totalRevenue = revenueAggregation._sum.totalPrice ? Number(revenueAggregation._sum.totalPrice) : 0;
+
+        // Get top 5 customers by spend
+        let topCustomers = await prisma.customer.findMany({
+            where: { tenantId: storeId },
+            orderBy: { totalSpent: 'desc' },
+            take: 5,
+        });
+        // Convert BigInt totalSpent to Number for each customer
+        topCustomers = topCustomers.map(c => ({
+            ...c,
+            totalSpent: c.totalSpent ? Number(c.totalSpent) : 0
+        }));
+
+        const response = {
+            totalCustomers,
+            totalOrders,
+            totalRevenue,
+            topCustomers,
+        };
+        res.status(200).json(convertBigIntToNumber(response));
+
+    } catch (error) {
+        console.error('Error fetching dashboard metrics:', error);
+        res.status(500).json({ status: 'error', message: 'Failed to fetch metrics.' });
+    }
 });

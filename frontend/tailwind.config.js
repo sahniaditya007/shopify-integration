@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 module.exports = {
+  darkMode: 'class',
   content: [
     "./pages/**/*.{js,ts,jsx,tsx}",
     "./components/**/*.{js,ts,jsx,tsx}"
@@ -7,39 +8,43 @@ module.exports = {
   theme: {
     extend: {
       colors: {
-        navy: {
-          900: '#0f0f23',
-          800: '#1a1a2e',
+        // Core dark neutrals inspired by Vercel
+        base: {
+          1000: '#000000',
+          900: '#0a0a0a',
+          800: '#111111',
+          700: '#121212',
         },
-        accent: {
-          purple: '#6366f1',
-          blue: '#818cf8',
-          cyan: '#06b6d4',
-          amber: '#f59e0b',
+        zinc: {
+          50: '#fafafa',
+          200: '#e4e4e7', // #D4D4D8-ish
+          400: '#a1a1aa',
+          500: '#71717a',
+          700: '#3f3f46',
+          900: '#18181b',
         },
-        glass: {
-          light: 'rgba(255,255,255,0.15)',
-          dark: 'rgba(24,26,46,0.25)',
-        },
+        white: '#ffffff',
+        black: '#000000',
       },
       fontFamily: {
-        sans: ['Inter', 'ui-sans-serif', 'system-ui'],
+        sans: ['Inter', 'ui-sans-serif', 'system-ui', 'Segoe UI', 'Roboto', 'Helvetica Neue', 'Arial'],
         mono: ['JetBrains Mono', 'ui-monospace', 'SFMono-Regular'],
       },
       boxShadow: {
-        modern: '0 4px 32px 0 rgba(15,15,35,0.25)',
-        glass: '0 8px 32px 0 rgba(80,80,120,0.18)',
+        modern: '0 10px 30px rgba(0,0,0,0.35)',
+        glass: '0 8px 24px rgba(0,0,0,0.35)',
       },
       backgroundImage: {
-        'accent-gradient': 'linear-gradient(90deg, #6366f1 0%, #818cf8 100%)',
+        'radial-fade': 'radial-gradient(600px circle at 50% 0%, rgba(255,255,255,0.06), transparent 40%)',
       },
       borderRadius: {
-        lg: '1.5rem',
-        md: '1rem',
+        xl: '1.25rem',
+        lg: '1rem',
+        md: '0.75rem',
         sm: '0.5rem',
       },
       backdropBlur: {
-        glass: '16px',
+        glass: '14px',
       },
       fontSize: {
         fluid: 'clamp(1rem, 2vw, 1.25rem)',
